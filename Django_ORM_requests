@@ -1,0 +1,34 @@
+# 1. Создание категорий и товаров
+electronics = Category.objects.create(name="Электроника", description="Гаджеты и устройства")
+phones = Category.objects.create(name="Телефоны", parent=electronics)
+laptops = Category.objects.create(name="Ноутбуки", parent=electronics)
+
+Product.objects.create(
+    name="iPhone 13",
+    description="Смартфон от Apple",
+    price=999.99,
+    stock=50,
+    category=phones
+)
+
+Product.objects.create(
+    name="MacBook Pro",
+    description="Ноутбук от Apple",
+    price=1999.99,
+    stock=20,
+    category=laptops
+)
+
+# 2. Получить все товары из определённой категории
+phones_products = Product.objects.filter(category=phones)
+
+# 3. Получить все заказы пользователя
+user = User.objects.get(username='someuser')
+user_orders = Order.objects.filter(user=user)
+
+# 4. Найти все отзывы для определённого товара
+product = Product.objects.get(name="iPhone 13")
+product_reviews = Review.objects.filter(product=product)
+
+# 5. Получить все товары, у которых количество на складе больше 10
+products_in_stock = Product.objects.filter(stock__gt=10)
