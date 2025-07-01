@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name='Название', unique=True)
@@ -14,6 +15,9 @@ class Category(models.Model):
         db_table = 'shop_products_categories'
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+
+    def get_absolute_url(self):
+        return reverse('products:product_list_by_category', args=[self.id])
 
 class Product(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
@@ -34,7 +38,9 @@ class Product(models.Model):
         verbose_name_plural = 'Товары'
         unique_together = ['name', 'category']
 
-
+    def get_absolute_url(self):
+        return reverse('products:product_detail', args=[self.id])
+    
 class Order(models.Model):
     STATUS_CHOICES = [
         ('processing', 'В обработке'),

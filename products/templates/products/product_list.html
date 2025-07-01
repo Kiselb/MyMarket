@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Товары{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <h4>Категории</h4>
+        <ul class="category-list">
+            <li>
+                <a href="{% url 'products:home' %}" 
+                class="{% if not category %}fw-bold{% endif %}">
+                    Все товары
+                </a>
+            </li>
+            {% for cat in categories %}
+                <li>
+                    <a href="{% url 'products:product_list_by_category' cat.id %}" 
+                    class="{% if category.id == cat.id %}fw-bold{% endif %}">
+                        {{ cat.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <h1>{% if category %}{{ category.name }}{% else %}Все товары{% endif %}</h1>
+        <div class="row">
+            {% for product in products %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <a href="{{ product.get_absolute_url }}">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}/static/images/no-image.jpg{% endif %}" 
+                                class="card-img-top" 
+                                alt="{{ product.name }}">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark">
+                                    {{ product.name }}
+                                </a>
+                            </h5>
+                            <p class="card-text text-success fw-bold">{{ product.price }} руб.</p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <p>Товары не найдены.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
