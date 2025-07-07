@@ -139,8 +139,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = ''
 EMAIL_PORT = 25 #587
 EMAIL_USE_TLS = False
-EMAIL_HOST_USER = 'mvkiselev@legion.ru'
-EMAIL_HOST_PASSWORD = 'MVKp$4LNs'
-DEFAULT_FROM_EMAIL = 'mvkiselev@legion.ru'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = ''
 
 CART_SESSION_ID = 'cart'
