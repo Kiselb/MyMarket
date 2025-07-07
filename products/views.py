@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Product, Category
-from basket.forms import CartAddProductForm
+from cart.forms import CartAddProductForm
 
 def product_list(request, category_id=None):
     category = None
@@ -17,14 +17,22 @@ def product_list(request, category_id=None):
         'products': products,
     })
 
-# def product_detail(request, id, slug):
-#     product = get_object_or_404(Product, id=id, slug=slug, stock__gt=0)
-#     cart_product_form = CartAddProductForm()
-#     return render(request, 'products/product_detail.html', {
-#         'product': product,
-#         'cart_product_form': cart_product_form,
-#     })
+#def product_detail(request, id, slug):
+#    product = get_object_or_404(Product, id=id, slug=slug, stock__gt=0)
+#    cart_product_form = CartAddProductForm()
+#    return render(request, 'products/product_detail.html', {
+#        'product': product,
+#        'cart_product_form': cart_product_form,
+#    })
+
+#def product_detail(request, id):
+#    product = get_object_or_404(Product, id=id)
+#    return render(request, 'products/product_detail.html', {'product': product})
 
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
-    return render(request, 'products/product_detail.html', {'product': product})
+    basket_product_form = CartAddProductForm()  # Создаём форму
+    return render(request, 'products/product_detail.html', {
+        'product': product,
+        'basket_product_form': basket_product_form,  # Передаём форму в шаблон
+    })

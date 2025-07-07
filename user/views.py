@@ -6,7 +6,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from django.conf import settings
 from .forms import (
@@ -40,17 +40,20 @@ def register(request):
 
             # Отправка email с подтверждением
             send_mail(
-                'Подтверждение регистрации',
-                f'Перейдите по ссылке для активации: {confirmation_link}',
-                'admin@shop.com',
-                [user.email]
+                subject = 'Подтверждение регистрации',
+                message = f'Перейдите по ссылке для активации: {confirmation_link}',
+                from_email = 'admin@shop.com',
+                recipient_list = [user.email],
+                auth_user="",
+                auth_password="",
+                fail_silently=False,
             )
 
-            return redirect('email_confirmation_sent')
+            return redirect('user:email_confirmation_sent')
     else:
         form = CustomUserCreationForm()
 
-    return render(request, 'register.html', {'form': form})
+    return render(request, 'user/register.html', {'form': form})
 
 def activate(request, uidb64, token):
     try:
@@ -67,25 +70,30 @@ def activate(request, uidb64, token):
         return render(request, 'activation_invalid.html')
 
 def email_confirmation_sent(request):
-    return render(request, 'users/email_confirmation_sent.html')
+    return render(request, 'user/email_confirmation_sent.html')
 
 def user_login(request):
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
+        print(f"Form errors: {form.errors}")
+        print(f"POST data: {request.POST}")
+        print(f'Form Validity: {form.is_valid()}')
         if form.is_valid():
             user = form.get_user()
+            print(f"User auth: {user.is_authenticated}")
+            print(user)
             if user.is_active:
                 login(request, user)
-                return redirect('profile')
+                return redirect('user:profile')
             else:
                 messages.error(request, 'Ваш аккаунт не активирован. Пожалуйста, проверьте вашу почту для активации.')
     else:
         form = CustomAuthenticationForm()
-    return render(request, 'users/login.html', {'form': form})
+    return render(request, 'user/login.html', {'form': form})
 
 def user_logout(request):
     logout(request)
-    return redirect('home')
+    return redirect('products:home')
 
 @login_required
 def profile(request):
@@ -94,10 +102,10 @@ def profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Профиль успешно обновлен!')
-            return redirect('profile')
+            return redirect('user:profile')
     else:
         form = ProfileUpdateForm(instance=request.user)
-    return render(request, 'users/profile.html', {'form': form})
+    return render(request, 'user/profile.html', {'form': form})
 
 @login_required
 def change_password(request):
@@ -105,11 +113,15 @@ def change_password(request):
         form = CustomSetPasswordForm(request.user, request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Пароль успешно изменен!')
-            return redirect('profile')
+            # Обновляем сессию пользователя
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, form.user)
+            messages.success(request, 'Пароль успешно изменён!')
+            return redirect('user:profile')
     else:
         form = CustomSetPasswordForm(request.user)
-    return render(request, 'users/change_password.html', {'form': form})
+    
+    return render(request, 'user/change_password.html', {'form': form})
 
 def password_reset_request(request):
     if request.method == 'POST':
@@ -121,33 +133,39 @@ def password_reset_request(request):
                 token = default_token_generator.make_token(user)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 reset_link = request.build_absolute_uri(
-                    reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
+                    reverse('user:password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
                 )
 
                 # Send email
                 subject = 'Сброс пароля'
-                message = render_to_string('users/password_reset_email.html', {
+                message = render_to_string('user/password_reset_email.html', {
                     'user': user,
                     'reset_link': reset_link,
                 })
+                #settings.DEFAULT_FROM_EMAIL,
                 send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
+                    subject=subject,
+                    message=message,
+                    auth_user="",
+                    auth_password="",
+                    from_email="mvkiselev@legion.ru",
+                    recipient_list=[user.email],
                     fail_silently=False,
                 )
-            return redirect('password_reset_done')
+            return redirect('user:password_reset_done')
     else:
         form = CustomPasswordResetForm()
-    return render(request, 'users/password_reset.html', {'form': form})
+    return render(request, 'user/password_reset.html', {'form': form})
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):
-    template_name = 'users/password_reset_done.html'
+    template_name = 'user/password_reset_done.html'
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
-    template_name = 'users/password_reset_confirm.html'
+    template_name = 'user/password_reset_confirm.html'
+    success_url = reverse_lazy('user:password_reset_complete')
     form_class = CustomSetPasswordForm
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
-    template_name = 'users/password_reset_complete.html'
+    #template_name = 'user/password_reset_complete.html'
+    def get(self, request):
+        return render(request, 'user/password_reset_complete.html')

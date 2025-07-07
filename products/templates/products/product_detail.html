@@ -5,7 +5,10 @@
 {% block content %}
 <div class="row">
     <div class="col-md-6">
-        <img src="{{ product.image.url }}" class="product-image img-fluid" alt="{{ product.name }}">
+        <img src="{% if product.image %}{{ product.image.url }}{% else %}/static/images/no-image.jpg{% endif %}" 
+            class="product-image img-fluid" 
+            alt="{{ product.name }}">
+
     </div>
     <div class="col-md-6">
         <h1>{{ product.name }}</h1>
@@ -13,7 +16,7 @@
         <p>На складе: {{ product.stock }} шт.</p>
         <p>{{ product.description }}</p>
         
-        <form action="{% url 'cart_add' product.id %}" method="post" class="mt-4">
+        <form action="{% url 'cart:cart_add' product.id %}" method="post" class="mt-4">
             {{ cart_product_form }}
             {% csrf_token %}
             <button type="submit" class="btn btn-primary mt-3">

@@ -1,7 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
+#from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.urls import reverse
+
+from django.conf import settings
+User = settings.AUTH_USER_MODEL
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name='Название', unique=True)
@@ -49,7 +53,7 @@ class Order(models.Model):
         ('cancelled', 'Отменен'),
     ]
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Пользователь')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing', verbose_name='Статус')
     
@@ -84,7 +88,7 @@ class OrderItem(models.Model):
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews', verbose_name='Товар')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='Пользователь')
     rating = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
         verbose_name='Оценка'

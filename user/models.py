@@ -19,7 +19,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     phone_number = models.CharField(_('Номер телефона'), max_length=15, blank=True)
     address = models.TextField(_('Адрес доставки'), blank=True)

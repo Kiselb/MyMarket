@@ -39,8 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'products',
-    'basket',
+    'cart',
     'user',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -129,12 +130,15 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#AUTH_USER_MODEL = 'accounts.CustomUser'
+AUTH_USER_MODEL = 'user.CustomUser'
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'el.group.legion.ru'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'mvkiselev'
+EMAIL_HOST = 'elephant.group.legion.ru'
+EMAIL_PORT = 25 #587
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = 'mvkiselev@legion.ru'
 EMAIL_HOST_PASSWORD = 'MVKp$4LNs'
 DEFAULT_FROM_EMAIL = 'mvkiselev@legion.ru'
