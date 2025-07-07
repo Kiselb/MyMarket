@@ -136,9 +136,11 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'elephant.group.legion.ru'
+EMAIL_HOST = ''
 EMAIL_PORT = 25 #587
 EMAIL_USE_TLS = False
 EMAIL_HOST_USER = 'mvkiselev@legion.ru'
 EMAIL_HOST_PASSWORD = 'MVKp$4LNs'
 DEFAULT_FROM_EMAIL = 'mvkiselev@legion.ru'
+
+CART_SESSION_ID = 'cart'

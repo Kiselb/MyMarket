@@ -1,50 +1,79 @@
 {% extends 'base.html' %}
 
-{% block title %}Корзина покупок{% endblock %}
-
 {% block content %}
-<h1>Корзина покупок</h1>
-<table class="cart">
-    <thead>
-        <tr>
-            <th>Товар</th>
-            <th>Количество</th>
-            <th>Удалить</th>
-            <th>Цена за единицу</th>
-            <th>Общая цена</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in basket %}
+<div class="container mt-4">
+    <h1>Ваша корзина</h1>
+    
+    {% if cart_items %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
             <tr>
                 <td>{{ item.product.name }}</td>
                 <td>
-                    <form action="{% url 'basket:basket_add' item.product.id %}" method="post">
-                        {{ item.update_quantity_form.quantity }}
-                        {{ item.update_quantity_form.override }}
-                        <input type="submit" value="Обновить">
+                    <form action="{% url 'cart:cart_add' item.product.id %}" method="post">
                         {% csrf_token %}
+                        {{ item.update_form.quantity }}
+                        {{ item.update_form.override }}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Обновить</button>
                     </form>
+                </td>
+                <td>{{ item.product.price }} руб.</td>
+                <td>
+                    {% if item.total_price %}
+                        {{ item.total_price }} руб.
+                    {% else %}
+                        {% with total=item.product.price|floatformat:2 %}
+                            {{ total }} × {{ item.quantity }} = {{ item.get_total|floatformat:2 }} руб.
+                        {% endwith %}
+                    {% endif %}
                 </td>
                 <td>
-                    <form action="{% url 'basket:basket_remove' item.product.id %}" method="post">
-                        <input type="submit" value="Удалить">
+                    <form action="{% url 'cart:cart_remove' item.product.id %}" method="post">
                         {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
                     </form>
                 </td>
-                <td class="num">{{ item.price }} руб.</td>
-                <td class="num">{{ item.total_price }} руб.</td>
             </tr>
-        {% endfor %}
-        <tr class="total">
-            <td>Всего</td>
-            <td colspan="3"></td>
-            <td class="num">{{ basket.get_total_price }} руб.</td>
-        </tr>
-    </tbody>
-</table>
-<p class="text-right">
-    <a href="{% url 'products:product_list' %}" class="button light">Продолжить покупки</a>
-    <a href="#" class="button">Оформить заказ</a>
-</p>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Итого:</strong></td>
+                <td colspan="2">
+                    <strong>
+                        {% if cart.get_total_price %}
+                            {{ cart.get_total_price }} руб.
+                        {% else %}
+                            {{ cart.total_price }} руб.
+                        {% endif %}
+                    </strong>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <div class="text-end">
+        <a href="{% url 'products:home' %}" class="btn btn-secondary">
+            Продолжить покупки
+        </a>
+        <a href="{% url 'orders:order_create' %}" class="btn btn-primary">
+            Оформить заказ
+        </a>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        Ваша корзина пуста. <a href="{% url 'products:home' %}">Начать покупки</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

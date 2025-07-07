@@ -2,47 +2,79 @@ from django.contrib.auth import login
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from products.models import Product
-from .models import Cart
+from .models import Cart, CartItem
 from .forms import CartAddProductForm
+from .cart import SessionCart
+
+def get_cart(request):
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        return cart
+    return SessionCart(request)
 
 def login_and_merge_cart(request, user):
-    # Логика объединения корзины сессии и корзины пользователя
-    if 'cart' in request.session:
-        cart = Cart.objects.get(user=user)
-        # Переносим данные из сессионной корзины в корзину пользователя
-        session_cart = request.session['cart']
-        for item in session_cart:
-            cart.items.create(product_id=item['product_id'], quantity=item['quantity'])
-        request.session.pop('cart')
+    session_cart = SessionCart(request)
+    if session_cart:
+        session_cart.merge_to_user_cart(user)
     login(request, user)
     return redirect('profile')
 
 @require_POST
 def cart_add(request, product_id):
-    cart = Cart(request)
+    cart = get_cart(request)
     product = get_object_or_404(Product, id=product_id)
     form = CartAddProductForm(request.POST)
+    
     if form.is_valid():
         cd = form.cleaned_data
-        cart.add(
-            product=product,
-            quantity=cd['quantity'],
-            override_quantity=cd['override']
-        )
+        if isinstance(cart, SessionCart):
+            cart.add(product, cd['quantity'], cd['override'])
+        else:
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                product=product,
+                defaults={'quantity': cd['quantity']}
+            )
+            if not created:
+                if cd['override']:
+                    cart_item.quantity = cd['quantity']
+                else:
+                    cart_item.quantity += cd['quantity']
+                cart_item.save()
+    
     return redirect('cart:cart_detail')
 
 @require_POST
 def cart_remove(request, product_id):
-    cart = Cart(request)
+    cart = get_cart(request)
     product = get_object_or_404(Product, id=product_id)
-    cart.remove(product)
-    return redirect('cart_detail')
+    
+    if isinstance(cart, SessionCart):
+        cart.remove(product)
+    else:
+        CartItem.objects.filter(cart=cart, product=product).delete()
+    
+    return redirect('cart:cart_detail')
 
 def cart_detail(request):
-    cart = Cart(request)
-    for item in cart:
-        item['update_quantity_form'] = CartAddProductForm(initial={
-            'quantity': item['quantity'],
-            'override': True
-        })
-    return render(request, 'cart/detail.html', {'cart': cart})
+    cart = get_cart(request)
+    
+    if isinstance(cart, SessionCart):
+        cart_items = list(cart)
+        for item in cart_items:
+            item['update_form'] = CartAddProductForm(initial={
+                'quantity': item['quantity'],
+                'override': True
+            })
+    else:
+        cart_items = cart.items.select_related('product').all()
+        for item in cart_items:
+            item.update_form = CartAddProductForm(initial={
+                'quantity': item.quantity,
+                'override': True
+            })
+    
+    return render(request, 'cart/detail.html', {
+        'cart': cart,
+        'cart_items': cart_items
+    })
