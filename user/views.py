@@ -21,6 +21,7 @@ from django.contrib.auth.views import (
     PasswordResetConfirmView,
     PasswordResetCompleteView
 )
+from cart.cart import SessionCart
 from .models import CustomUser
 
 User = get_user_model()
@@ -84,6 +85,8 @@ def user_login(request):
             print(user)
             if user.is_active:
                 login(request, user)
+                cart = SessionCart(request)
+                cart.merge_to_user_cart(user=user)
                 return redirect('user:profile')
             else:
                 messages.error(request, 'Ваш аккаунт не активирован. Пожалуйста, проверьте вашу почту для активации.')

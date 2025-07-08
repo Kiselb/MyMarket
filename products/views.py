@@ -31,8 +31,8 @@ def product_list(request, category_id=None):
 
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
-    basket_product_form = CartAddProductForm()  # Создаём форму
+    cart_product_form = CartAddProductForm()
     return render(request, 'products/product_detail.html', {
         'product': product,
-        'basket_product_form': basket_product_form,  # Передаём форму в шаблон
+        'cart_product_form': cart_product_form,
     })

@@ -5,10 +5,15 @@ class CartAddProductForm(forms.Form):
         min_value=1,
         max_value=20,
         initial=1,
-        widget=forms.NumberInput(attrs={'class': 'form-control'})
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'name': 'quantity'
+        })
     )
     override = forms.BooleanField(
         required=False,
         initial=False,
-        widget=forms.HiddenInput
+        widget=forms.HiddenInput(attrs={
+            'name': 'override'
+        })
     )

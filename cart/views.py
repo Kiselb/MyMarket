@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 from products.models import Product
 from .models import Cart, CartItem
 from .forms import CartAddProductForm
@@ -24,11 +25,29 @@ def cart_add(request, product_id):
     cart = get_cart(request)
     product = get_object_or_404(Product, id=product_id)
     form = CartAddProductForm(request.POST)
+
+    print("POST data:", request.POST)
+    print("Form errors:", form.errors if not form.is_valid() else "No errors")
+    print(f'CartAddProductForm validity: {form.is_valid()}')
+
+    if not form.is_valid():
+        from pprint import pprint
+        print("Invalid form data:")
+        pprint(form.errors)
+        return render(request, 'cart/debug.html', {
+            'post_data': request.POST,
+            'form_errors': form.errors
+        })
     
     if form.is_valid():
         cd = form.cleaned_data
         if isinstance(cart, SessionCart):
-            cart.add(product, cd['quantity'], cd['override'])
+            cart.add(
+                product=product,
+                quantity=cd['quantity'],
+                override_quantity=cd['override']
+            )
+            messages.success(request, "Товар добавлен в корзину")
         else:
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
@@ -41,7 +60,9 @@ def cart_add(request, product_id):
                 else:
                     cart_item.quantity += cd['quantity']
                 cart_item.save()
-    
+            messages.success(request, "Товар обновлён в корзине")
+    else:
+        messages.error(request, "Ошибка при добавлении товара в корзину")
     return redirect('cart:cart_detail')
 
 @require_POST
