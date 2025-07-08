@@ -17,18 +17,6 @@ def product_list(request, category_id=None):
         'products': products,
     })
 
-#def product_detail(request, id, slug):
-#    product = get_object_or_404(Product, id=id, slug=slug, stock__gt=0)
-#    cart_product_form = CartAddProductForm()
-#    return render(request, 'products/product_detail.html', {
-#        'product': product,
-#        'cart_product_form': cart_product_form,
-#    })
-
-#def product_detail(request, id):
-#    product = get_object_or_404(Product, id=id)
-#    return render(request, 'products/product_detail.html', {'product': product})
-
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
     cart_product_form = CartAddProductForm()

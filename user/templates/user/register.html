@@ -12,7 +12,7 @@
                     <h4 class="mb-0 text-start">Регистрация</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" class="form-floating">  <!-- Ключевой класс для выравнивания -->
+                    <form method="post" class="form-floating">
                         {% csrf_token %}
                         
                         {% if form.errors %}
